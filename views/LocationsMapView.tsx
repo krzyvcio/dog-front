@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { ChevronLeft, MapPin, Stethoscope, ShoppingBag, Home as HomeIcon, Search as SearchIcon, Phone, Globe, Navigation, ExternalLink, Info } from 'lucide-react';
 import { DogPlace, PlaceType } from '../types';
 import { DOG_PLACES } from '../services/locationData';
+import { PullToRefresh } from '../components/PullToRefresh';
 
 interface LocationsMapViewProps {
   onBack: () => void;
@@ -11,6 +12,11 @@ interface LocationsMapViewProps {
 export const LocationsMapView: React.FC<LocationsMapViewProps> = ({ onBack }) => {
   const [filter, setFilter] = useState<PlaceType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const handleRefresh = async () => {
+    // Simulate data reload
+    await new Promise(resolve => setTimeout(resolve, 1500));
+  };
 
   const filteredPlaces = useMemo(() => {
     return DOG_PLACES.filter(place => {
@@ -82,75 +88,79 @@ export const LocationsMapView: React.FC<LocationsMapViewProps> = ({ onBack }) =>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-20">
-        <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">{filteredPlaces.length} znalezionych punktów</span>
-        </div>
-        
-        {filteredPlaces.length > 0 ? (
-            filteredPlaces.map(place => (
-                <div 
-                    key={place.id}
-                    className="bg-white rounded-[32px] p-5 shadow-sm border border-gray-100 flex flex-col gap-4 animate-in fade-in duration-300"
-                >
-                    <div className="flex gap-4">
-                        <div className="shrink-0 w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100">
-                            {getPlaceIcon(place.type)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <h3 className="text-md font-black text-gray-900 leading-tight mb-0.5">{place.name}</h3>
-                            <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2">{getPlaceLabel(place.type)}</p>
-                            
-                            <button 
-                                onClick={() => openInExternalMaps(place)}
-                                className="flex items-start gap-1.5 text-left group"
-                            >
-                                <MapPin size={14} className="text-gray-300 shrink-0 mt-0.5 group-hover:text-secondary transition-colors" />
-                                <span className="text-xs text-gray-500 font-medium leading-relaxed group-hover:text-secondary group-hover:underline">
-                                    {place.city ? `${place.city}, ` : ''}{place.street || 'Adres na mapie'} {place.houseNumber || ''}
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-2 pt-2">
-                        {place.phone && (
-                            <a 
-                                href={`tel:${place.phone.replace(/\s/g, '')}`}
-                                className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 py-3 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all"
-                            >
-                                <Phone size={14} className="text-gray-400" /> Zadzwoń
-                            </a>
-                        )}
-                        <button 
-                            onClick={() => openInExternalMaps(place)}
-                            className="flex-1 bg-gray-900 text-white py-3 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-md"
-                        >
-                            <Navigation size={14} className="text-primary" /> Prowadź
-                        </button>
-                        {place.website && (
-                             <a 
-                                href={place.website}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="w-12 bg-sky-50 text-secondary rounded-2xl flex items-center justify-center hover:bg-sky-100 transition-colors"
-                            >
-                                <Globe size={18} />
-                            </a>
-                        )}
-                    </div>
+      <div className="flex-1 overflow-y-auto">
+        <PullToRefresh onRefresh={handleRefresh}>
+            <div className="p-4 space-y-4 pb-20">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">{filteredPlaces.length} znalezionych punktów</span>
                 </div>
-            ))
-        ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-center text-gray-300">
-                <Info size={48} className="mb-4 opacity-20" />
-                <p className="text-sm font-bold">Brak wyników dla wybranych filtrów</p>
-            </div>
-        )}
+                
+                {filteredPlaces.length > 0 ? (
+                    filteredPlaces.map(place => (
+                        <div 
+                            key={place.id}
+                            className="bg-white rounded-[32px] p-5 shadow-sm border border-gray-100 flex flex-col gap-4 animate-in fade-in duration-300"
+                        >
+                            <div className="flex gap-4">
+                                <div className="shrink-0 w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center border border-gray-100">
+                                    {getPlaceIcon(place.type)}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-md font-black text-gray-900 leading-tight mb-0.5">{place.name}</h3>
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-2">{getPlaceLabel(place.type)}</p>
+                                    
+                                    <button 
+                                        onClick={() => openInExternalMaps(place)}
+                                        className="flex items-start gap-1.5 text-left group"
+                                    >
+                                        <MapPin size={14} className="text-gray-300 shrink-0 mt-0.5 group-hover:text-secondary transition-colors" />
+                                        <span className="text-xs text-gray-500 font-medium leading-relaxed group-hover:text-secondary group-hover:underline">
+                                            {place.city ? `${place.city}, ` : ''}{place.street || 'Adres na mapie'} {place.houseNumber || ''}
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
 
-        <div className="py-6 text-center">
-          <p className="text-[10px] font-black text-gray-200 uppercase tracking-[0.3em]">DogGo • Twoje lokalne wsparcie</p>
-        </div>
+                            <div className="flex gap-2 pt-2">
+                                {place.phone && (
+                                    <a 
+                                        href={`tel:${place.phone.replace(/\s/g, '')}`}
+                                        className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 py-3 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all"
+                                    >
+                                        <Phone size={14} className="text-gray-400" /> Zadzwoń
+                                    </a>
+                                )}
+                                <button 
+                                    onClick={() => openInExternalMaps(place)}
+                                    className="flex-1 bg-gray-900 text-white py-3 rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all shadow-md"
+                                >
+                                    <Navigation size={14} className="text-primary" /> Prowadź
+                                </button>
+                                {place.website && (
+                                     <a 
+                                        href={place.website}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-12 bg-sky-50 text-secondary rounded-2xl flex items-center justify-center hover:bg-sky-100 transition-colors"
+                                    >
+                                        <Globe size={18} />
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+                    ))
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-20 text-center text-gray-300">
+                        <Info size={48} className="mb-4 opacity-20" />
+                        <p className="text-sm font-bold">Brak wyników dla wybranych filtrów</p>
+                    </div>
+                )}
+
+                <div className="py-6 text-center">
+                  <p className="text-[10px] font-black text-gray-200 uppercase tracking-[0.3em]">DogGo • Twoje lokalne wsparcie</p>
+                </div>
+            </div>
+        </PullToRefresh>
       </div>
     </div>
   );

@@ -34,6 +34,7 @@ export interface GPSSettings {
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('home');
+  const [searchInitialMode, setSearchInitialMode] = useState<'find-walker' | 'find-dog'>('find-walker');
   const [personalDataInitialRole, setPersonalDataInitialRole] = useState<'owner' | 'walker'>('owner');
   
   const [dogs, setDogs] = useState<Dog[]>(MY_DOGS);
@@ -167,7 +168,13 @@ const App: React.FC = () => {
   };
 
   const handleNavigation = (tab: string) => {
-    if (tab === 'personal-data-walker') {
+    if (tab === 'search:find-dog') {
+      setSearchInitialMode('find-dog');
+      setActiveTab('search');
+    } else if (tab === 'search') {
+      setSearchInitialMode('find-walker');
+      setActiveTab('search');
+    } else if (tab === 'personal-data-walker') {
       setPersonalDataInitialRole('walker');
       setActiveTab('personal-data');
     } else if (tab === 'personal-data') {
@@ -193,7 +200,7 @@ const App: React.FC = () => {
       case 'home':
         return <Home onNavigate={handleNavigation} onViewOrder={handleViewOrder} onStartOrder={handleStartOrder} dogs={dogs} orders={orders} requests={requests} />;
       case 'search':
-        return <Search onBookWalker={(walker) => { setBookingWalker(walker); setActiveTab('booking'); }} onAcceptRequest={handleAcceptDogRequest} user={CURRENT_USER} />;
+        return <Search onBookWalker={(walker) => { setBookingWalker(walker); setActiveTab('booking'); }} onAcceptRequest={handleAcceptDogRequest} user={CURRENT_USER} initialMode={searchInitialMode} />;
       case 'live':
         const activeOrder = orders.find(o => o.id === activeOrderId) || orders[0];
         return (

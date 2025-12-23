@@ -1,8 +1,9 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Filter, Star, MapPin, Clock, Calendar, Users, Heart, ArrowRight, Search as SearchIcon, Info, ShieldCheck, CheckCircle2, AlertTriangle, Send } from 'lucide-react';
 import { WALKERS, DOG_REQUESTS } from '../services/mockData';
 import { ServiceType, DogWalkerProfile, User, WalkerTier, DogWalkRequest } from '../types';
+import { PullToRefresh } from '../components/PullToRefresh';
 
 type SearchMode = 'find-walker' | 'find-dog';
 
@@ -10,13 +11,24 @@ interface SearchProps {
   onBookWalker: (walker: DogWalkerProfile) => void;
   onAcceptRequest: (request: DogWalkRequest) => void;
   user: User;
+  initialMode?: SearchMode;
 }
 
-export const Search: React.FC<SearchProps> = ({ onBookWalker, onAcceptRequest, user }) => {
-  const [mode, setMode] = useState<SearchMode>('find-walker');
+export const Search: React.FC<SearchProps> = ({ onBookWalker, onAcceptRequest, user, initialMode = 'find-walker' }) => {
+  const [mode, setMode] = useState<SearchMode>(initialMode);
   const [filterType, setFilterType] = useState<ServiceType | 'All'>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [confirmingRequest, setConfirmingRequest] = useState<DogWalkRequest | null>(null);
+
+  // Update mode if initialMode prop changes (e.g. re-entering tab)
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
+
+  const handleRefresh = async () => {
+    // Simulate network request
+    await new Promise(resolve => setTimeout(resolve, 1500));
+  };
 
   const filteredWalkers = WALKERS.filter(walker => {
     const matchesSearch = (walker.user.firstName + ' ' + walker.user.lastName + ' ' + walker.bio)
@@ -86,72 +98,76 @@ export const Search: React.FC<SearchProps> = ({ onBookWalker, onAcceptRequest, u
         </div>
       </div>
 
-      <div className="p-4 space-y-4 pb-24">
-        {mode === 'find-walker' ? (
-          filteredWalkers.map(walker => (
-            <div key={walker.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-3 group">
-              <div className="flex gap-4">
-                <div className="relative">
-                  <img src={walker.user.image} alt={walker.user.firstName} className="w-16 h-16 rounded-2xl object-cover shadow-sm" />
-                  <div className="absolute -bottom-1 -right-1 bg-secondary text-white p-1 rounded-full border-2 border-white">
-                    <CheckCircle2 size={10} />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-bold text-gray-900 leading-none mb-1">{walker.user.firstName} {walker.user.lastName}</h3>
-                      <p className="text-[9px] font-black text-primary uppercase tracking-widest">{walker.tier}</p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2 line-clamp-2 italic">"{walker.bio}"</p>
-                </div>
-              </div>
-              <div className="h-px bg-gray-50" />
-              <button onClick={() => onBookWalker(walker)} className="w-full bg-gray-900 text-white text-xs font-bold py-3 rounded-xl shadow-sm">
-                Szczegóły i Rezerwacja
-              </button>
-            </div>
-          ))
-        ) : (
-          filteredRequests.map(request => {
-            const allowed = canAcceptRequest(request);
-            return (
-              <div key={request.id} className={`bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-3 transition-opacity ${!allowed ? 'opacity-60' : ''}`}>
-                <div className="flex gap-4">
-                  <img src={request.dog.image} alt={request.dog.name} className="w-16 h-16 rounded-2xl object-cover" />
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-bold text-gray-900 leading-none mb-1">{request.dog.name}</h3>
-                        <span className="text-[10px] font-bold text-primary bg-orange-50 px-2 py-0.5 rounded-md uppercase tracking-wider">{request.dog.breed}</span>
-                      </div>
-                      <div className="text-right">
-                          <span className="block font-black text-gray-900">{request.price} zł</span>
+      <div className="flex-1 overflow-y-auto">
+        <PullToRefresh onRefresh={handleRefresh}>
+          <div className="p-4 space-y-4 pb-24">
+            {mode === 'find-walker' ? (
+              filteredWalkers.map(walker => (
+                <div key={walker.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-3 group">
+                  <div className="flex gap-4">
+                    <div className="relative">
+                      <img src={walker.user.image} alt={walker.user.firstName} className="w-16 h-16 rounded-2xl object-cover shadow-sm" />
+                      <div className="absolute -bottom-1 -right-1 bg-secondary text-white p-1 rounded-full border-2 border-white">
+                        <CheckCircle2 size={10} />
                       </div>
                     </div>
-                    <div className="mt-4 space-y-1">
-                      <div className="flex items-center gap-2 text-[11px] font-bold text-gray-700">
-                        <Calendar size={14} className="text-primary" /> {request.date}, {request.timeSlot}
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-bold text-gray-900 leading-none mb-1">{walker.user.firstName} {walker.user.lastName}</h3>
+                          <p className="text-[9px] font-black text-primary uppercase tracking-widest">{walker.tier}</p>
+                        </div>
                       </div>
+                      <p className="text-xs text-gray-500 mt-2 line-clamp-2 italic">"{walker.bio}"</p>
                     </div>
                   </div>
-                </div>
-                <div className="h-px bg-gray-50" />
-                {allowed ? (
-                  <button onClick={() => setConfirmingRequest(request)} className="w-full bg-primary/10 text-primary py-3 rounded-xl text-xs font-black uppercase tracking-widest border border-primary/20">
-                    Chcę pomóc temu psu
+                  <div className="h-px bg-gray-50" />
+                  <button onClick={() => onBookWalker(walker)} className="w-full bg-gray-900 text-white text-xs font-bold py-3 rounded-xl shadow-sm">
+                    Szczegóły i Rezerwacja
                   </button>
-                ) : (
-                  <div className="flex items-center justify-center gap-2 py-2 text-[9px] font-black text-amber-600 bg-amber-50 rounded-xl uppercase tracking-tighter">
-                    {/* Fix: Accessing first service in the array as the primary one for authorization check */}
-                    <AlertTriangle size={12} /> Wymagana ranga: {request.serviceTypes[0] === ServiceType.VeterinaryCare ? 'Psi Zbawiciel' : 'Psi Animator'}
+                </div>
+              ))
+            ) : (
+              filteredRequests.map(request => {
+                const allowed = canAcceptRequest(request);
+                return (
+                  <div key={request.id} className={`bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex flex-col gap-3 transition-opacity ${!allowed ? 'opacity-60' : ''}`}>
+                    <div className="flex gap-4">
+                      <img src={request.dog.image} alt={request.dog.name} className="w-16 h-16 rounded-2xl object-cover" />
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-bold text-gray-900 leading-none mb-1">{request.dog.name}</h3>
+                            <span className="text-[10px] font-bold text-primary bg-orange-50 px-2 py-0.5 rounded-md uppercase tracking-wider">{request.dog.breed}</span>
+                          </div>
+                          <div className="text-right">
+                              <span className="block font-black text-gray-900">{request.price} zł</span>
+                          </div>
+                        </div>
+                        <div className="mt-4 space-y-1">
+                          <div className="flex items-center gap-2 text-[11px] font-bold text-gray-700">
+                            <Calendar size={14} className="text-primary" /> {request.date}, {request.timeSlot}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="h-px bg-gray-50" />
+                    {allowed ? (
+                      <button onClick={() => setConfirmingRequest(request)} className="w-full bg-primary/10 text-primary py-3 rounded-xl text-xs font-black uppercase tracking-widest border border-primary/20">
+                        Chcę pomóc temu psu
+                      </button>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2 py-2 text-[9px] font-black text-amber-600 bg-amber-50 rounded-xl uppercase tracking-tighter">
+                        {/* Fix: Accessing first service in the array as the primary one for authorization check */}
+                        <AlertTriangle size={12} /> Wymagana ranga: {request.serviceTypes[0] === ServiceType.VeterinaryCare ? 'Psi Zbawiciel' : 'Psi Animator'}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })
-        )}
+                );
+              })
+            )}
+          </div>
+        </PullToRefresh>
       </div>
 
       {confirmingRequest && (

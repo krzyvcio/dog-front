@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { ArrowRight, Star, ShieldCheck, Heart, Briefcase, PawPrint, Calendar, MapPin, Clock, Home as HomeIcon, Stethoscope, ChevronRight, Play, FileText, Plus } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowRight, Star, ShieldCheck, Heart, Briefcase, PawPrint, Calendar, MapPin, Clock, Home as HomeIcon, Stethoscope, ChevronRight, Play, FileText, Plus, Search, X } from 'lucide-react';
 import { Dog, Order, ServiceType, DogWalkRequest } from '../types';
 
 interface HomeProps {
@@ -13,6 +13,9 @@ interface HomeProps {
 }
 
 export const Home: React.FC<HomeProps> = ({ onNavigate, onViewOrder, onStartOrder, dogs, orders = [], requests = [] }) => {
+  const [showHero1, setShowHero1] = useState(true);
+  const [showHero2, setShowHero2] = useState(true);
+
   const plannedOrders = orders.filter(o => o.status === 'Pending' || o.status === 'InProgress');
 
   const getServiceIcon = (type: ServiceType) => {
@@ -33,30 +36,56 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, onViewOrder, onStartOrde
     }
   };
 
-  const getServiceLabel = (type: ServiceType) => {
-    switch (type) {
-      case ServiceType.Walk: return 'Spacer';
-      case ServiceType.Stay: return 'Opieka';
-      case ServiceType.VeterinaryCare: return 'Weterynarz';
-      default: return 'Usługa';
-    }
-  };
-
   return (
     <div className="flex flex-col gap-6 p-4 pb-20 overflow-x-hidden">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-primary to-orange-600 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10"></div>
-        <div className="relative z-10">
-          <h1 className="text-2xl font-bold mb-2">Znajdź pomoc dla swojego psa!</h1>
-          <p className="text-orange-100 mb-6 text-sm">Zaufani opiekunowie i profesjonalna pomoc medyczna w Twojej okolicy.</p>
+      
+      {/* Hero Section 1 - Find Help (Orange) */}
+      <div className={`transition-all duration-500 ease-in-out transform ${showHero1 ? 'opacity-100 max-h-96 translate-y-0' : 'opacity-0 max-h-0 -translate-y-4 overflow-hidden margin-0'}`}>
+        <div className="bg-gradient-to-br from-primary to-orange-600 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden group">
           <button 
-            onClick={() => onNavigate('search')}
-            className="bg-white text-primary font-bold py-2.5 px-5 rounded-full text-sm inline-flex items-center gap-2 hover:bg-orange-50 transition-colors shadow-sm"
+            onClick={() => setShowHero1(false)}
+            className="absolute top-3 right-3 p-2 bg-white/20 hover:bg-white/30 rounded-full text-white transition-colors z-20"
           >
-            Szukaj ogłoszeń
-            <ArrowRight size={16} />
+            <X size={16} />
           </button>
+          
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10"></div>
+          <div className="relative z-10">
+            <h1 className="text-2xl font-bold mb-2">Znajdź pomoc dla swojego psa!</h1>
+            <p className="text-orange-100 mb-6 text-sm">Zaufani opiekunowie i profesjonalna pomoc medyczna w Twojej okolicy.</p>
+            <button 
+              onClick={() => onNavigate('search')}
+              className="bg-white text-primary font-bold py-2.5 px-5 rounded-full text-sm inline-flex items-center gap-2 hover:bg-orange-50 transition-colors shadow-sm"
+            >
+              Szukaj ogłoszeń
+              <ArrowRight size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Hero Section 2 - Become a Walker (Blue) */}
+      <div className={`transition-all duration-500 ease-in-out transform ${showHero2 ? 'opacity-100 max-h-96 translate-y-0' : 'opacity-0 max-h-0 -translate-y-4 overflow-hidden margin-0'}`}>
+        <div className="bg-gradient-to-br from-secondary to-blue-600 rounded-3xl p-6 text-white shadow-lg relative overflow-hidden group">
+          <button 
+            onClick={() => setShowHero2(false)}
+            className="absolute top-3 right-3 p-2 bg-white/20 hover:bg-white/30 rounded-full text-white transition-colors z-20"
+          >
+            <X size={16} />
+          </button>
+
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-10 -mt-10"></div>
+          <div className="relative z-10">
+            <h1 className="text-xl font-bold mb-2">Zostań Psim Patronem</h1>
+            <p className="text-sky-100 mb-6 text-sm">Wyprowadź komuś psa albo weź go na hotel do Siebie.</p>
+            <button 
+              onClick={() => onNavigate('search:find-dog')}
+              className="bg-white text-secondary font-bold py-2.5 px-5 rounded-full text-sm inline-flex items-center gap-2 hover:bg-sky-50 transition-colors shadow-sm"
+            >
+              Szukaj ofert
+              <Search size={16} />
+            </button>
+          </div>
         </div>
       </div>
 
