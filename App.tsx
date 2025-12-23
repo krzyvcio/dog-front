@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Layout } from './components/Layout';
 import { Home } from './views/Home';
 import { Search } from './views/Search';
@@ -314,13 +315,21 @@ const App: React.FC = () => {
     'dog-list', 'edit-dog', 'address-list', 'edit-address', 'booking', 'public-profile', 'chat', 'history', 'notifications', 'locations-map', 'support', 'terms', 'add-request', 'request-list'
   ];
   if (fullScreenTabs.includes(activeTab)) {
-     return renderContent();
+     return (
+       <>
+         {renderContent()}
+         <SpeedInsights />
+       </>
+     );
   }
 
   return (
-    <Layout activeTab={activeTab} onTabChange={handleNavigation}>
-      {renderContent()}
-    </Layout>
+    <>
+      <Layout activeTab={activeTab} onTabChange={handleNavigation}>
+        {renderContent()}
+      </Layout>
+      <SpeedInsights />
+    </>
   );
 };
 
