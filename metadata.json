@@ -1,0 +1,7 @@
+{
+  "name": "Copy of DogGo - Opieka i Spacery",
+  "description": "Aplikacja łącząca właścicieli psów z opiekunami, oferująca śledzenie spacerów GPS na żywo, płatności i profile.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
